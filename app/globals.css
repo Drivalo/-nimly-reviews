@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-cormorant), Georgia, serif;
+  }
+}
+
+@layer components {
+  .stat-card {
+    border-radius: 0.75rem;
+    background-color: #605f4b;
+    padding: 1.25rem;
+  }
+
+  .panel-card {
+    @apply rounded-xl bg-spa-statcard p-6;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-spa-sidebar/30 bg-spa-backdrop px-4 py-2.5 text-sm text-ink transition-colors focus:border-spa-copper focus:outline-none focus:ring-2 focus:ring-spa-copper/20;
+  }
+
+  .input-field-dark {
+    @apply w-full rounded-lg border border-cream-50/20 bg-spa-sidebar/40 px-4 py-2.5 text-sm text-cream-85 transition-colors focus:border-spa-copper focus:outline-none focus:ring-2 focus:ring-spa-copper/20;
+  }
+
+  .btn-copper {
+    border-radius: 0.5rem;
+    background-color: #cdad85;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #f9f4ea;
+    transition: all 0.15s ease;
+  }
+
+  .btn-copper:hover {
+    filter: brightness(1.05);
+  }
+
+  .btn-copper:disabled {
+    opacity: 0.5;
+  }
+
+  .bg-page-backdrop {
+    background-color: #a8a99a;
+  }
+
+  .bg-table-row {
+    background-color: #e3d6ca;
+  }
+
+  .bg-accent-sand {
+    background-color: #cdad85;
+  }
+
+  .hover\:bg-accent-sand\/20:hover {
+    background-color: rgba(205, 173, 133, 0.2);
+  }
+
+  .btn-outline {
+    @apply rounded-lg border border-spa-sidebar/40 bg-transparent px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-spa-copper hover:text-spa-copper;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  .status-pending {
+    background-color: #f9f4ea;
+    color: #3a3a38;
+  }
+
+  .status-complete {
+    background-color: #3a3a38;
+    color: #f9f4ea;
+  }
+
+  .status-sms_sent {
+    background-color: #c8896a;
+    color: #3a1a08;
+  }
+
+  .status-rated {
+    background-color: #5e6a4e;
+    color: #d0dcc0;
+  }
+
+  .status-reviewed {
+    background-color: #5e6a4e;
+    color: #d0dcc0;
+  }
+
+  .status-complaint {
+    background-color: #6b4035;
+    color: #e8c4b4;
+  }
+}
