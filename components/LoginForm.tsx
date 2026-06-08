@@ -58,6 +58,11 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               required
               autoFocus
               className="input-field-dark"
+              style={{
+                backgroundColor: "#605F4B",
+                color: "#F9F4EA",
+                borderColor: "rgba(249, 244, 234, 0.3)",
+              }}
             />
           </div>
 
