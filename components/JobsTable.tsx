@@ -41,11 +41,11 @@ export default function JobsTable({ jobs, onRefresh }: JobsTableProps) {
 
   if (jobs.length === 0) {
     return (
-      <div className="panel-card text-center">
-        <p className="font-heading text-lg text-cream-85">
+      <div className="rounded-xl bg-table-row p-6 text-center">
+        <p className="font-heading text-lg text-ink">
           No appointments yet
         </p>
-        <p className="mt-2 text-sm text-cream-50">
+        <p className="mt-2 text-sm text-ink">
           Add your first client appointment to get started.
         </p>
       </div>

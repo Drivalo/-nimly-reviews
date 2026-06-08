@@ -34,7 +34,10 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     <div className="flex min-h-screen items-center justify-center bg-spa-backdrop p-4">
       <div className="w-full max-w-sm stat-card p-10">
         <div className="mb-8 text-center">
-          <h1 className="font-heading text-3xl font-semibold tracking-wide text-spa-copper">
+          <h1
+            className="font-heading text-3xl font-semibold tracking-wide"
+            style={{ color: "#F9F4EA" }}
+          >
             Lumière Spa
           </h1>
           <div className="mx-auto mt-3 h-px w-12 bg-spa-copper" />
