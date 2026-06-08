@@ -57,11 +57,11 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoFocus
-              className="input-field-dark"
+              className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none"
               style={{
-                backgroundColor: "#605F4B",
+                backgroundColor: "rgba(255,255,255,0.1)",
                 color: "#F9F4EA",
-                borderColor: "rgba(249, 244, 234, 0.3)",
+                border: "0.5px solid rgba(249,244,234,0.3)",
               }}
             />
           </div>
