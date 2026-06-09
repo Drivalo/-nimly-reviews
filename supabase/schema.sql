@@ -15,6 +15,7 @@ CREATE TABLE jobs (
   feedback TEXT,
   review_requested_at TIMESTAMPTZ,
   sequence_halted BOOLEAN DEFAULT FALSE,
+  consent_given BOOLEAN DEFAULT FALSE,
   inngest_event_id TEXT
 );
 
@@ -37,8 +38,10 @@ CREATE TABLE settings (
   owner_name TEXT DEFAULT 'James',
   owner_phone TEXT,
   google_review_link TEXT,
-  rating_sms_template TEXT DEFAULT 'Hi {customer_name}, it''s {owner_name} from {business_name}. We just finished your job — hope everything looks great! Quick question: how would you rate our service today? Reply with a number: 1⭐ 2⭐ 3⭐ 4⭐ 5⭐',
-  delay_minutes INTEGER DEFAULT 90
+  rating_sms_template TEXT DEFAULT '',
+  delay_minutes INTEGER DEFAULT 90,
+  business_type TEXT DEFAULT 'aesthetic' CHECK (business_type IN ('tradie', 'aesthetic', 'healthcare')),
+  consent_required BOOLEAN DEFAULT FALSE
 );
 
 -- Insert default settings row

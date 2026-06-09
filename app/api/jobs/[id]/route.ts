@@ -37,12 +37,18 @@ export async function PATCH(
 
   // Mark complete flow
   if (body.action === "complete") {
+    const updates: Record<string, unknown> = {
+      status: "complete",
+      completed_at: new Date().toISOString(),
+    };
+
+    if (body.consent_given !== undefined) {
+      updates.consent_given = Boolean(body.consent_given);
+    }
+
     const { data: job, error: updateError } = await supabase
       .from("jobs")
-      .update({
-        status: "complete",
-        completed_at: new Date().toISOString(),
-      })
+      .update(updates)
       .eq("id", id)
       .select()
       .single();
@@ -52,8 +58,8 @@ export async function PATCH(
     }
 
     const { ids } = await inngest.send({
-      name: "rating/send.sms",
-      data: { jobId: id },
+      name: "reviews/job.completed",
+      data: { job_id: id },
     });
 
     if (ids[0]) {

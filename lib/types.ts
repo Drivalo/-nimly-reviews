@@ -23,6 +23,7 @@ export interface Job {
   feedback: string | null;
   review_requested_at: string | null;
   sequence_halted: boolean;
+  consent_given: boolean;
   inngest_event_id: string | null;
 }
 
@@ -37,6 +38,8 @@ export interface SmsLog {
   to_number: string | null;
 }
 
+export type BusinessType = "tradie" | "aesthetic" | "healthcare";
+
 export interface Settings {
   id: string;
   business_name: string;
@@ -45,4 +48,6 @@ export interface Settings {
   google_review_link: string | null;
   rating_sms_template: string;
   delay_minutes: number;
+  business_type: BusinessType;
+  consent_required: boolean;
 }

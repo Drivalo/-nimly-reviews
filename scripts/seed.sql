@@ -21,7 +21,8 @@ INSERT INTO jobs (
   rating_received_at,
   feedback,
   review_requested_at,
-  sequence_halted
+  sequence_halted,
+  consent_given
 ) VALUES
   -- 2 pending
   (
@@ -33,7 +34,7 @@ INSERT INTO jobs (
     'Deep tissue massage — 60 min, focus on shoulders and lower back',
     145,
     'pending',
-    NULL, NULL, NULL, NULL, NULL, FALSE
+    NULL, NULL, NULL, NULL, NULL, FALSE, FALSE
   ),
   (
     'a1000001-0001-4001-8001-000000000002',
@@ -44,7 +45,7 @@ INSERT INTO jobs (
     'Facial treatment — hydrating renewal with enzyme peel',
     120,
     'pending',
-    NULL, NULL, NULL, NULL, NULL, FALSE
+    NULL, NULL, NULL, NULL, NULL, FALSE, FALSE
   ),
   -- 2 complete (waiting for SMS delay)
   (
@@ -57,7 +58,7 @@ INSERT INTO jobs (
     380,
     'complete',
     NOW() - INTERVAL '2 hours',
-    NULL, NULL, NULL, NULL, FALSE
+    NULL, NULL, NULL, NULL, FALSE, FALSE
   ),
   (
     'a1000001-0001-4001-8001-000000000004',
@@ -69,7 +70,7 @@ INSERT INTO jobs (
     165,
     'complete',
     NOW() - INTERVAL '1 hour',
-    NULL, NULL, NULL, NULL, FALSE
+    NULL, NULL, NULL, NULL, FALSE, FALSE
   ),
   -- 1 sms_sent
   (
@@ -84,7 +85,7 @@ INSERT INTO jobs (
     NOW() - INTERVAL '1 day',
     NULL, NULL, NULL,
     NOW() - INTERVAL '3 hours',
-    FALSE
+    FALSE, TRUE
   ),
   -- 2 reviewed (5 stars)
   (
@@ -101,7 +102,7 @@ INSERT INTO jobs (
     NOW() - INTERVAL '3 days',
     NULL,
     NOW() - INTERVAL '4 days',
-    TRUE
+    TRUE, TRUE
   ),
   (
     'a1000001-0001-4001-8001-000000000007',
@@ -117,7 +118,7 @@ INSERT INTO jobs (
     NOW() - INTERVAL '5 days',
     NULL,
     NOW() - INTERVAL '6 days',
-    TRUE
+    TRUE, TRUE
   ),
   -- 1 complaint (2 stars, feedback filled)
   (
@@ -134,7 +135,7 @@ INSERT INTO jobs (
     NOW() - INTERVAL '2 days',
     'My appointment started 25 minutes late and the treatment room wasn''t ready. The facial felt rushed and my skin was red and irritated for hours afterward.',
     NOW() - INTERVAL '3 days',
-    TRUE
+    TRUE, FALSE
   );
 
 -- ── SMS log (11 entries for progressed appointments) ────────────────────────
@@ -238,5 +239,8 @@ UPDATE settings SET
   owner_name = 'James',
   owner_phone = '+61412345009',
   google_review_link = 'https://g.page/r/lumiere-spa-review',
-  delay_minutes = 90
+  rating_sms_template = '',
+  delay_minutes = 90,
+  business_type = 'aesthetic',
+  consent_required = FALSE
 WHERE id = (SELECT id FROM settings LIMIT 1);

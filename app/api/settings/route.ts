@@ -46,6 +46,8 @@ export async function PATCH(request: NextRequest) {
     "google_review_link",
     "rating_sms_template",
     "delay_minutes",
+    "business_type",
+    "consent_required",
   ];
 
   const updates: Record<string, unknown> = {};

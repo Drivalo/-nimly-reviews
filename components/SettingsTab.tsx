@@ -131,8 +131,8 @@ export default function SettingsTab() {
             Rating SMS Template
           </label>
           <p className="mb-2 text-xs text-ink-60">
-            Variables: {"{customer_name}"}, {"{owner_name}"},{" "}
-            {"{business_name}"}
+            Variables: {"{{name}}"}, {"{{review_link}}"}. Leave blank to use the
+            default template for your business type.
           </p>
           <textarea
             rows={5}
