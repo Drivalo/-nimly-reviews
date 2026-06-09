@@ -115,19 +115,45 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
 
     if (rating !== null) {
+      if (rating >= 4) {
+        const { data: settings } = await supabase
+          .from("settings")
+          .select("google_review_link")
+          .limit(1)
+          .single();
+
+        const googleReviewLink = settings?.google_review_link ?? "";
+
+        await supabase
+          .from("jobs")
+          .update({
+            rating,
+            status: "review_received",
+            rating_received_at: now,
+          })
+          .eq("id", job.id);
+
+        await logInboundSms(job.id, body, from, to, messageSid);
+
+        return twimlResponse(
+          `Thank you so much! We're really glad you had a great experience. Would you mind leaving us a quick Google review? It means a lot to us: ${googleReviewLink}`
+        );
+      }
+
       await supabase
         .from("jobs")
         .update({
           rating,
-          status: "review_received",
+          status: "concern",
           rating_received_at: now,
+          sequence_halted: true,
         })
         .eq("id", job.id);
 
       await logInboundSms(job.id, body, from, to, messageSid);
 
       return twimlResponse(
-        "Thank you for your rating! We really appreciate your feedback."
+        "Thank you for letting us know. We're sorry to hear that and will be in touch shortly."
       );
     }
 
