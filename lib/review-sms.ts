@@ -1,6 +1,15 @@
-import type { Settings } from "@/lib/types";
+import type { BusinessType, Settings } from "@/lib/types";
 
-export const DEFAULT_SMS_TEMPLATES: Record<string, string> = {
+export const BUSINESS_TYPE_OPTIONS: {
+  value: BusinessType;
+  label: string;
+}[] = [
+  { value: "tradie", label: "Trade & Home Services" },
+  { value: "aesthetic", label: "Aesthetic & Wellness" },
+  { value: "healthcare", label: "Healthcare" },
+];
+
+export const DEFAULT_SMS_TEMPLATES: Record<BusinessType, string> = {
   tradie:
     "Hi {{name}}, thanks for having us out today. How'd we do? Reply 1-5 ⭐",
   aesthetic:
@@ -8,6 +17,18 @@ export const DEFAULT_SMS_TEMPLATES: Record<string, string> = {
   healthcare:
     "Hi {{name}}, thank you for your visit. If you're happy to share feedback, please reply with a rating from 1 to 5. Your response is voluntary.",
 };
+
+export function getDefaultTemplateForBusinessType(
+  businessType: BusinessType
+): string {
+  return DEFAULT_SMS_TEMPLATES[businessType] ?? DEFAULT_SMS_TEMPLATES.aesthetic;
+}
+
+export function isDefaultOrEmptyTemplate(template: string): boolean {
+  const trimmed = template.trim();
+  if (!trimmed) return true;
+  return Object.values(DEFAULT_SMS_TEMPLATES).includes(trimmed);
+}
 
 export function resolveRatingSmsTemplate(settings: Settings): string {
   if (settings.rating_sms_template?.trim()) {

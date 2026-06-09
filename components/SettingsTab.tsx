@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Settings } from "@/lib/types";
+import type { BusinessType, Settings } from "@/lib/types";
+import {
+  BUSINESS_TYPE_OPTIONS,
+  getDefaultTemplateForBusinessType,
+  isDefaultOrEmptyTemplate,
+} from "@/lib/review-sms";
 
 export default function SettingsTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -12,9 +17,33 @@ export default function SettingsTab() {
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
-      .then((data) => setSettings(data))
+      .then((data) =>
+        setSettings({
+          ...data,
+          business_type: data.business_type ?? "aesthetic",
+          consent_required: data.consent_required ?? false,
+        })
+      )
       .finally(() => setLoading(false));
   }, []);
+
+  function handleBusinessTypeChange(businessType: BusinessType) {
+    if (!settings) return;
+
+    const updates: Settings = {
+      ...settings,
+      business_type: businessType,
+      consent_required:
+        businessType === "healthcare" ? settings.consent_required : false,
+    };
+
+    if (isDefaultOrEmptyTemplate(settings.rating_sms_template)) {
+      updates.rating_sms_template =
+        getDefaultTemplateForBusinessType(businessType);
+    }
+
+    setSettings(updates);
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -22,10 +51,18 @@ export default function SettingsTab() {
     setSaving(true);
     setSaved(false);
 
+    const payload = {
+      ...settings,
+      consent_required:
+        settings.business_type === "healthcare"
+          ? settings.consent_required
+          : false,
+    };
+
     const res = await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settings),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
@@ -51,6 +88,25 @@ export default function SettingsTab() {
         Spa Settings
       </h2>
       <form onSubmit={handleSave} className="max-w-xl space-y-6">
+        <div>
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+            Business Type
+          </label>
+          <select
+            value={settings.business_type}
+            onChange={(e) =>
+              handleBusinessTypeChange(e.target.value as BusinessType)
+            }
+            className="input-field"
+          >
+            {BUSINESS_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
             Business Name
@@ -125,6 +181,33 @@ export default function SettingsTab() {
             className="input-field"
           />
         </div>
+
+        {settings.business_type === "healthcare" && (
+          <div className="rounded-lg border border-spa-sidebar/20 bg-table-row p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={settings.consent_required}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    consent_required: e.target.checked,
+                  })
+                }
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-medium text-ink">
+                  Consent Required
+                </span>
+                <span className="mt-1 block text-xs text-ink-60">
+                  Patients will only receive SMS if consent is recorded on their
+                  appointment.
+                </span>
+              </span>
+            </label>
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
