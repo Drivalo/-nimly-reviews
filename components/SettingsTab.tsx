@@ -93,7 +93,7 @@ export default function SettingsTab() {
       </h2>
       <form onSubmit={handleSave} className="settings-form max-w-xl space-y-6">
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
             Business Type
           </label>
           <select
@@ -112,7 +112,7 @@ export default function SettingsTab() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
             Business Name
           </label>
           <input
@@ -126,7 +126,7 @@ export default function SettingsTab() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
               Owner Name
             </label>
             <input
@@ -138,7 +138,7 @@ export default function SettingsTab() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
               Owner Phone
             </label>
             <input
@@ -154,7 +154,7 @@ export default function SettingsTab() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
             Google Review Link
           </label>
           <input
@@ -169,7 +169,7 @@ export default function SettingsTab() {
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
             SMS Delay (minutes)
           </label>
           <input
@@ -214,7 +214,7 @@ export default function SettingsTab() {
         )}
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white">
             Rating SMS Template
           </label>
           <p className="mb-2 text-xs text-ink-60">
@@ -237,7 +237,7 @@ export default function SettingsTab() {
             {saving ? "Saving..." : "Save Settings"}
           </button>
           {saved && (
-            <span className="text-sm font-medium text-spa-copper">Saved</span>
+            <span className="text-sm font-medium text-white">Saved</span>
           )}
         </div>
       </form>

@@ -25,11 +25,11 @@
 
   .settings-form .input-field,
   .settings-form .input-field option {
-    color: #ffffff;
+    color: #000000;
   }
 
   .settings-form .input-field::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.45);
   }
 
   .input-field-dark {
