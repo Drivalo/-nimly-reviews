@@ -53,6 +53,7 @@ export async function sendReviewSms(jobId: string): Promise<SendReviewResult> {
   const messageBody = personalizeReviewTemplate(template, {
     name: typedJob.customer_name,
     review_link: typedSettings.google_review_link,
+    business_name: typedSettings.business_name,
   });
 
   const result = await sendSms(typedJob.customer_phone, messageBody);

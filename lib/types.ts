@@ -38,7 +38,13 @@ export interface SmsLog {
   to_number: string | null;
 }
 
-export type BusinessType = "tradie" | "aesthetic" | "healthcare";
+export type BusinessType =
+  | "tradie"
+  | "aesthetic"
+  | "healthcare"
+  | "hair_salon"
+  | "dentist"
+  | "estate_agent";
 
 export interface Settings {
   id: string;

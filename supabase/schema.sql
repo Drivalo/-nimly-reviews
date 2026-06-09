@@ -40,7 +40,7 @@ CREATE TABLE settings (
   google_review_link TEXT,
   rating_sms_template TEXT DEFAULT '',
   delay_minutes INTEGER DEFAULT 90,
-  business_type TEXT DEFAULT 'aesthetic' CHECK (business_type IN ('tradie', 'aesthetic', 'healthcare')),
+  business_type TEXT DEFAULT 'aesthetic' CHECK (business_type IN ('tradie', 'aesthetic', 'healthcare', 'hair_salon', 'dentist', 'estate_agent')),
   consent_required BOOLEAN DEFAULT FALSE
 );
 

@@ -16,4 +16,4 @@ ALTER TABLE settings
 
 ALTER TABLE settings
   ADD CONSTRAINT settings_business_type_check
-  CHECK (business_type IN ('tradie', 'aesthetic', 'healthcare'));
+  CHECK (business_type IN ('tradie', 'aesthetic', 'healthcare', 'hair_salon', 'dentist', 'estate_agent'));

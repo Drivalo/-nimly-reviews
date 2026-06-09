@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import type { BusinessType, Settings } from "@/lib/types";
 import {
   BUSINESS_TYPE_OPTIONS,
+  defaultConsentForBusinessType,
   getDefaultTemplateForBusinessType,
+  isConsentBusinessType,
   isDefaultOrEmptyTemplate,
 } from "@/lib/review-sms";
 
@@ -33,8 +35,11 @@ export default function SettingsTab() {
     const updates: Settings = {
       ...settings,
       business_type: businessType,
-      consent_required:
-        businessType === "healthcare" ? settings.consent_required : false,
+      consent_required: defaultConsentForBusinessType(
+        businessType,
+        settings.business_type,
+        settings.consent_required
+      ),
     };
 
     if (isDefaultOrEmptyTemplate(settings.rating_sms_template)) {
@@ -53,10 +58,9 @@ export default function SettingsTab() {
 
     const payload = {
       ...settings,
-      consent_required:
-        settings.business_type === "healthcare"
-          ? settings.consent_required
-          : false,
+      consent_required: isConsentBusinessType(settings.business_type)
+        ? settings.consent_required
+        : false,
     };
 
     const res = await fetch("/api/settings", {
@@ -182,7 +186,7 @@ export default function SettingsTab() {
           />
         </div>
 
-        {settings.business_type === "healthcare" && (
+        {isConsentBusinessType(settings.business_type) && (
           <div className="rounded-lg border border-spa-sidebar/20 bg-table-row p-4">
             <label className="flex cursor-pointer items-start gap-3">
               <input
@@ -214,8 +218,9 @@ export default function SettingsTab() {
             Rating SMS Template
           </label>
           <p className="mb-2 text-xs text-ink-60">
-            Variables: {"{{name}}"}, {"{{review_link}}"}. Leave blank to use the
-            default template for your business type.
+            Variables: {"{{name}}"}, {"{{review_link}}"}, {"{customer_name}"},{" "}
+            {"{business_name}"}. Leave blank to use the default template for
+            your business type.
           </p>
           <textarea
             rows={5}
