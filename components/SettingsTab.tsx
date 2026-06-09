@@ -91,7 +91,7 @@ export default function SettingsTab() {
       <h2 className="mb-6 font-heading text-2xl font-medium text-ink">
         Spa Settings
       </h2>
-      <form onSubmit={handleSave} className="max-w-xl space-y-6">
+      <form onSubmit={handleSave} className="settings-form max-w-xl space-y-6">
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-spa-copper">
             Business Type
