@@ -95,9 +95,19 @@
     color: #d0dcc0;
   }
 
+  .status-review_received {
+    background-color: #5e6a4e;
+    color: #d0dcc0;
+  }
+
   .status-reviewed {
     background-color: #5e6a4e;
     color: #d0dcc0;
+  }
+
+  .status-concern {
+    background-color: #6b4035;
+    color: #e8c4b4;
   }
 
   .status-complaint {

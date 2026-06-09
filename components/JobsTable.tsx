@@ -10,14 +10,30 @@ interface JobsTableProps {
   onRefresh: () => void;
 }
 
-const STATUS_STYLES: Record<string, { label: string; className: string }> = {
+export const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   pending: { label: "Pending", className: "status-badge status-pending" },
   complete: { label: "Complete", className: "status-badge status-complete" },
   sms_sent: { label: "SMS Sent", className: "status-badge status-sms_sent" },
   rated: { label: "Rated", className: "status-badge status-rated" },
+  review_received: {
+    label: "Rating Received",
+    className: "status-badge status-review_received",
+  },
   reviewed: { label: "Reviewed", className: "status-badge status-reviewed" },
+  concern: { label: "Concern", className: "status-badge status-concern" },
   complaint: { label: "Concern", className: "status-badge status-complaint" },
 };
+
+export const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "complete", label: "Complete" },
+  { value: "sms_sent", label: "SMS Sent" },
+  { value: "rated", label: "Rated" },
+  { value: "review_received", label: "Rating Received" },
+  { value: "reviewed", label: "Reviewed" },
+  { value: "concern", label: "Concern" },
+];
 
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_STYLES[status] ?? {
@@ -38,6 +54,16 @@ function formatDate(date: string) {
 
 export default function JobsTable({ jobs, onRefresh }: JobsTableProps) {
   const [smsJob, setSmsJob] = useState<{ id: string; name: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filteredJobs =
+    statusFilter === "all"
+      ? jobs
+      : statusFilter === "concern"
+        ? jobs.filter(
+            (job) => job.status === "concern" || job.status === "complaint"
+          )
+        : jobs.filter((job) => job.status === statusFilter);
 
   if (jobs.length === 0) {
     return (
@@ -54,6 +80,31 @@ export default function JobsTable({ jobs, onRefresh }: JobsTableProps) {
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {STATUS_FILTER_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setStatusFilter(option.value)}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              statusFilter === option.value
+                ? "bg-accent-sand text-cream"
+                : "bg-table-row text-ink hover:bg-accent-sand/20"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {filteredJobs.length === 0 ? (
+        <div className="rounded-xl bg-table-row p-6 text-center">
+          <p className="font-heading text-lg text-ink">No matching appointments</p>
+          <p className="mt-2 text-sm text-ink">
+            Try a different status filter.
+          </p>
+        </div>
+      ) : (
       <div className="overflow-hidden rounded-[12px]">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] table-fixed border-collapse text-sm">
@@ -76,7 +127,7 @@ export default function JobsTable({ jobs, onRefresh }: JobsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <tr key={job.id} className="border-b border-white/40 bg-table-row last:border-b-0">
                 <td className="px-4 py-3 align-middle">
                   <p className="font-medium text-ink">{job.customer_name}</p>
@@ -115,6 +166,7 @@ export default function JobsTable({ jobs, onRefresh }: JobsTableProps) {
         </table>
         </div>
       </div>
+      )}
 
       <SmsLogModal
         jobId={smsJob?.id ?? null}

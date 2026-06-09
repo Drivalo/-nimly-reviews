@@ -35,12 +35,12 @@ export default function StatsTab({ jobs }: StatsTabProps) {
       j.rating_received_at &&
       new Date(j.rating_received_at) >= weekStart
   ).length;
-  const weekComplaints = jobs.filter(
-    (j) =>
-      j.status === "complaint" &&
-      j.rating_received_at &&
-      new Date(j.rating_received_at) >= weekStart
-  ).length;
+  const weekConcerns = jobs.filter((j) => {
+    if (j.status !== "concern" && j.status !== "complaint") return false;
+    const activityAt =
+      j.rating_received_at ?? j.review_requested_at ?? j.completed_at;
+    return activityAt && new Date(activityAt) >= weekStart;
+  }).length;
 
   const distribution = [1, 2, 3, 4, 5].map((star) => ({
     star,
@@ -62,10 +62,17 @@ export default function StatsTab({ jobs }: StatsTabProps) {
     .slice(0, 10);
 
   function activityLabel(job: Job): string {
+    if (job.status === "concern") {
+      return `Concern raised by ${job.customer_name}`;
+    }
+    if (job.status === "review_received" && job.rating) {
+      return `${job.rating}-star rating from ${job.customer_name}`;
+    }
     if (job.rating_received_at && job.rating) {
       if (job.rating >= 4)
         return `${job.rating}-star rating from ${job.customer_name}`;
-      return `Concern raised by ${job.customer_name} (${job.rating} stars)`;
+      if (job.status === "complaint")
+        return `Concern raised by ${job.customer_name} (${job.rating} stars)`;
     }
     if (job.review_requested_at && job.status === "sms_sent") {
       return `Follow-up sent to ${job.customer_name}`;
@@ -87,7 +94,7 @@ export default function StatsTab({ jobs }: StatsTabProps) {
             { label: "Appointments Completed", value: weekCompleted },
             { label: "Follow-ups Sent", value: weekSmsSent },
             { label: "4–5 Star Ratings", value: weekHighRatings },
-            { label: "Concerns Intercepted", value: weekComplaints },
+            { label: "Concerns Intercepted", value: weekConcerns },
           ].map((item) => (
             <div key={item.label} className="stat-card">
               <p className="text-xs font-medium uppercase tracking-wide text-spa-copper">

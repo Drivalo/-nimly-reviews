@@ -1,36 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase";
-import {
-  extractRating,
-  sendSms,
-  phonesMatch,
-  getBaseUrl,
-  getTwilioPhoneNumber,
-  EMPTY_TWIML,
-} from "@/lib/twilio";
-import type { Job, Settings } from "@/lib/types";
+import twilio from "twilio";
+import { createClient } from "@/lib/supabase/server";
+import { phonesMatch } from "@/lib/twilio";
+import type { Job } from "@/lib/types";
 
-function twimlResponse() {
-  return new NextResponse(EMPTY_TWIML, {
+const MessagingResponse = twilio.twiml.MessagingResponse;
+
+const WORD_TO_NUMBER: Record<string, number> = {
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+};
+
+function parseRating(body: string): number | null {
+  const trimmed = body.trim().toLowerCase();
+  if (/^[1-5]$/.test(trimmed)) return parseInt(trimmed, 10);
+  return WORD_TO_NUMBER[trimmed] ?? null;
+}
+
+function getWebhookUrl(request: NextRequest): string {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedProto && forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}${request.nextUrl.pathname}`;
+  }
+  const baseUrl = process.env.BASE_URL;
+  if (baseUrl) {
+    return `${baseUrl.replace(/\/$/, "")}${request.nextUrl.pathname}`;
+  }
+  return request.url;
+}
+
+function twimlResponse(message?: string) {
+  const twiml = new MessagingResponse();
+  if (message) {
+    twiml.message(message);
+  }
+  return new NextResponse(twiml.toString(), {
     status: 200,
     headers: { "Content-Type": "text/xml" },
   });
 }
 
-async function logSms(
+async function logInboundSms(
   jobId: string,
-  direction: "inbound" | "outbound",
   body: string,
-  from: string | null,
-  to: string | null,
-  sid: string | null = null
+  from: string,
+  to: string,
+  messageSid: string | null
 ) {
-  const supabase = createServiceClient();
+  const supabase = createClient();
   await supabase.from("sms_log").insert({
     job_id: jobId,
-    direction,
+    direction: "inbound",
     body,
-    twilio_message_sid: sid,
+    twilio_message_sid: messageSid,
     from_number: from,
     to_number: to,
   });
@@ -38,108 +64,87 @@ async function logSms(
 
 export async function POST(request: NextRequest) {
   try {
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (!authToken) {
+      console.error("Missing TWILIO_AUTH_TOKEN");
+      return new NextResponse("Server misconfigured", { status: 500 });
+    }
+
+    const signature = request.headers.get("X-Twilio-Signature") ?? "";
     const formData = await request.formData();
-    const from = formData.get("From")?.toString() ?? "";
-    const body = formData.get("Body")?.toString() ?? "";
-    const messageSid = formData.get("MessageSid")?.toString() ?? null;
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = value.toString();
+    });
 
-    const rating = extractRating(body);
+    const webhookUrl = getWebhookUrl(request);
+    const isValid = twilio.validateRequest(
+      authToken,
+      signature,
+      webhookUrl,
+      params
+    );
 
-    const supabase = createServiceClient();
+    if (!isValid) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
+    const from = params.From ?? "";
+    const to = params.To ?? "";
+    const body = params.Body ?? "";
+    const messageSid = params.MessageSid ?? null;
+
+    const supabase = createClient();
 
     const { data: jobs } = await supabase
       .from("jobs")
       .select("*")
       .eq("status", "sms_sent")
+      .eq("sequence_halted", false)
       .order("review_requested_at", { ascending: false });
 
-    const job = (jobs as Job[] | null)?.find((j) =>
-      phonesMatch(j.customer_phone, from)
+    const job = (jobs as Job[] | null)?.find(
+      (j) => phonesMatch(j.customer_phone, from)
     );
 
     if (!job) {
-      console.log(`No sms_sent job found for phone: ${from}`);
       return twimlResponse();
     }
 
-    await logSms(job.id, "inbound", body, from, getTwilioPhoneNumber(), messageSid);
+    const rating = parseRating(body);
+    const now = new Date().toISOString();
 
-    if (rating === null) {
-      return twimlResponse();
+    if (rating !== null) {
+      await supabase
+        .from("jobs")
+        .update({
+          rating,
+          status: "review_received",
+          rating_received_at: now,
+        })
+        .eq("id", job.id);
+
+      await logInboundSms(job.id, body, from, to, messageSid);
+
+      return twimlResponse(
+        "Thank you for your rating! We really appreciate your feedback."
+      );
     }
 
     await supabase
       .from("jobs")
       .update({
-        rating,
-        rating_received_at: new Date().toISOString(),
+        feedback: body,
+        status: "concern",
         sequence_halted: true,
       })
       .eq("id", job.id);
 
-    const { data: settings } = await supabase
-      .from("settings")
-      .select("*")
-      .limit(1)
-      .single();
+    await logInboundSms(job.id, body, from, to, messageSid);
 
-    const typedSettings = settings as Settings;
-    const baseUrl = getBaseUrl();
-    const twilioFrom = getTwilioPhoneNumber();
-
-    if (rating >= 4) {
-      await supabase
-        .from("jobs")
-        .update({ status: "reviewed" })
-        .eq("id", job.id);
-
-      const reviewLink = typedSettings.google_review_link ?? "[review link not set]";
-      const thankYouMsg = `Thank you so much! 🙏 We really appreciate it. If you have a moment, it would mean the world to us if you could share that on Google — it only takes 30 seconds: ${reviewLink} — ${typedSettings.owner_name} & the ${typedSettings.business_name} team`;
-
-      const result = await sendSms(job.customer_phone, thankYouMsg);
-      await logSms(
-        job.id,
-        "outbound",
-        thankYouMsg,
-        result.from ?? twilioFrom,
-        result.to ?? job.customer_phone,
-        result.sid
-      );
-    } else {
-      await supabase
-        .from("jobs")
-        .update({ status: "complaint" })
-        .eq("id", job.id);
-
-      const feedbackUrl = `${baseUrl}/feedback/${job.id}`;
-      const customerMsg = `Thank you for letting us know — we're really sorry to hear that. We want to make this right. Could you tell us what happened? ${feedbackUrl}`;
-
-      const customerResult = await sendSms(job.customer_phone, customerMsg);
-      await logSms(
-        job.id,
-        "outbound",
-        customerMsg,
-        customerResult.from ?? twilioFrom,
-        customerResult.to ?? job.customer_phone,
-        customerResult.sid
-      );
-
-      if (typedSettings.owner_phone) {
-        const ownerMsg = `🚨 URGENT — ${job.customer_name} (${job.customer_phone}) rated you ${rating}/5. Call them now to resolve before it goes public. Feedback form: ${feedbackUrl}`;
-
-        const ownerResult = await sendSms(typedSettings.owner_phone, ownerMsg);
-        await logSms(
-          job.id,
-          "outbound",
-          ownerMsg,
-          ownerResult.from ?? twilioFrom,
-          ownerResult.to ?? typedSettings.owner_phone,
-          ownerResult.sid
-        );
-      }
-    }
-
-    return twimlResponse();
+    return twimlResponse(
+      "Thank you for reaching out. We've received your message and will be in touch shortly."
+    );
   } catch (error) {
     console.error("Twilio inbound webhook error:", error);
     return twimlResponse();

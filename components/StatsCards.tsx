@@ -10,17 +10,21 @@ export default function StatsCards({ jobs }: StatsCardsProps) {
   const total = jobs.length;
   const completed = jobs.filter((j) => j.status !== "pending").length;
   const fiveStar = jobs.filter((j) => j.rating === 5).length;
-  const complaints = jobs.filter((j) => j.status === "complaint").length;
+  const concerns = jobs.filter(
+    (j) => j.status === "concern" || j.status === "complaint"
+  ).length;
+  const ratingsReceived = jobs.filter((j) => j.status === "review_received").length;
 
   const cards = [
     { label: "Total Appointments", value: total },
     { label: "Completed", value: completed },
+    { label: "Ratings Received", value: ratingsReceived },
     { label: "5-Star Ratings", value: fiveStar },
-    { label: "Concerns Resolved", value: complaints },
+    { label: "Concerns", value: concerns },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       {cards.map((card) => (
         <div key={card.label} className="stat-card">
           <p className="text-xs font-medium uppercase tracking-wide text-spa-copper">

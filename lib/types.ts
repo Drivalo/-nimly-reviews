@@ -3,7 +3,9 @@ export type JobStatus =
   | "complete"
   | "sms_sent"
   | "rated"
+  | "review_received"
   | "reviewed"
+  | "concern"
   | "complaint";
 
 export interface Job {
