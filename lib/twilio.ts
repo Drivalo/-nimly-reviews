@@ -60,16 +60,25 @@ export function extractRating(body: string): number | null {
 
 export function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
+
+  // UK national format: 07XXXXXXXXX -> +447XXXXXXXXX
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return `+44${digits.slice(1)}`;
+  }
+
+  // UK E.164 without plus: 447XXXXXXXXX -> +447XXXXXXXXX
+  if (digits.length === 12 && digits.startsWith("44")) {
+    return `+${digits}`;
+  }
+
   if (digits.length === 10) return `+1${digits}`;
   if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  if (phone.startsWith("+")) return phone;
-  return `+${digits}`;
+  if (digits.length > 0) return `+${digits}`;
+  return phone;
 }
 
 export function phonesMatch(a: string, b: string): boolean {
-  const normA = a.replace(/\D/g, "");
-  const normB = b.replace(/\D/g, "");
-  return normA.endsWith(normB) || normB.endsWith(normA) || normA === normB;
+  return normalizePhone(a) === normalizePhone(b);
 }
 
 export function personalizeTemplate(
