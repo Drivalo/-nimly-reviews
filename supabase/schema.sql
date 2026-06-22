@@ -1,7 +1,16 @@
+-- Businesses (multi-tenant API keys for Zapier / external integrations)
+CREATE TABLE businesses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  name TEXT NOT NULL,
+  api_key TEXT NOT NULL UNIQUE
+);
+
 -- Jobs table (business owner adds customers here and marks complete)
 CREATE TABLE jobs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT NOW(),
+  business_id UUID REFERENCES businesses(id) ON DELETE SET NULL,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT,
@@ -44,10 +53,13 @@ CREATE TABLE settings (
   consent_required BOOLEAN DEFAULT FALSE
 );
 
--- Insert default settings row
+-- Insert default business + settings row
+INSERT INTO businesses (name, api_key) VALUES ('Lumière Spa', 'replace-with-your-api-key');
 INSERT INTO settings (business_name, owner_name) VALUES ('Lumière Spa', 'James');
 
 -- Indexes
+CREATE INDEX idx_businesses_api_key ON businesses(api_key);
+CREATE INDEX idx_jobs_business_id ON jobs(business_id);
 CREATE INDEX idx_jobs_status ON jobs(status);
 CREATE INDEX idx_jobs_customer_phone ON jobs(customer_phone);
 CREATE INDEX idx_sms_log_job_id ON sms_log(job_id);
@@ -56,8 +68,10 @@ CREATE INDEX idx_sms_log_job_id ON sms_log(job_id);
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sms_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
 
 -- Service role bypass (all access via service role key in API routes)
+CREATE POLICY "Service role full access" ON businesses FOR ALL USING (true);
 CREATE POLICY "Service role full access" ON jobs FOR ALL USING (true);
 CREATE POLICY "Service role full access" ON sms_log FOR ALL USING (true);
 CREATE POLICY "Service role full access" ON settings FOR ALL USING (true);

@@ -12,15 +12,22 @@ Replace `{BASE_URL}` with your deployed app URL (e.g. `https://your-app.vercel.a
 
 ## Authentication
 
-Send your API key in the `Authorization` header:
+Send your business API key in the `Authorization` header:
 
 ```
 Authorization: Bearer YOUR_API_KEY
 ```
 
-The key must match the `JOBS_API_KEY` environment variable on your Nimly Reviews server. Requests without a valid key receive `401 Unauthorized`.
+The key must match the `api_key` column for a row in the `businesses` table. Each business has its own key. Requests without a valid key receive `401 Unauthorized`.
 
-Generate and set `JOBS_API_KEY` in `.env.local` (local) and in your hosting provider’s environment variables (production).
+Generate a long random string and store it when creating a business:
+
+```sql
+INSERT INTO businesses (name, api_key)
+VALUES ('Your Business Name', 'your-long-random-api-key-here');
+```
+
+Use that same value as the Bearer token in Zapier.
 
 ## Request body
 
@@ -70,7 +77,7 @@ Returns the created job object, including `id`, `status` (`pending`), and timest
    - **URL:** `https://your-app.vercel.app/api/jobs/create`
    - **Payload type:** JSON
    - **Headers:**
-     - `Authorization`: `Bearer YOUR_API_KEY` (use your real `JOBS_API_KEY` value)
+     - `Authorization`: `Bearer YOUR_API_KEY` (your business `api_key` from Supabase)
      - `Content-Type`: `application/json`
    - **Data** — Map fields from the trigger step:
 
@@ -88,6 +95,7 @@ Returns the created job object, including `id`, `status` (`pending`), and timest
 
 New jobs are created with:
 
+- `business_id`: set from the authenticated business
 - `status`: `pending`
 - `sequence_halted`: `false`
 - `consent_given`: `false`

@@ -1,22 +1,32 @@
-import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 
-function isValidApiKey(request: NextRequest): boolean {
-  const expected = process.env.JOBS_API_KEY;
-  if (!expected) return false;
-
+function getBearerToken(request: NextRequest): string | null {
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return false;
+  if (!authHeader?.startsWith("Bearer ")) return null;
 
-  const provided = authHeader.slice(7);
-  if (provided.length !== expected.length) return false;
+  const token = authHeader.slice(7).trim();
+  return token || null;
+}
 
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+async function authenticateBusiness(request: NextRequest) {
+  const apiKey = getBearerToken(request);
+  if (!apiKey) return null;
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("api_key", apiKey)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data;
 }
 
 export async function POST(request: NextRequest) {
-  if (!isValidApiKey(request)) {
+  const business = await authenticateBusiness(request);
+  if (!business) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -41,6 +51,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("jobs")
       .insert({
+        business_id: business.id,
         customer_name: String(customer_name).trim(),
         customer_phone: String(customer_phone).trim(),
         customer_email: customer_email ? String(customer_email).trim() : null,

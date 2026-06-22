@@ -11,6 +11,7 @@ export type JobStatus =
 export interface Job {
   id: string;
   created_at: string;
+  business_id: string | null;
   customer_name: string;
   customer_phone: string;
   customer_email: string | null;
@@ -45,6 +46,13 @@ export type BusinessType =
   | "hair_salon"
   | "dentist"
   | "estate_agent";
+
+export interface Business {
+  id: string;
+  created_at: string;
+  name: string;
+  api_key: string;
+}
 
 export interface Settings {
   id: string;
